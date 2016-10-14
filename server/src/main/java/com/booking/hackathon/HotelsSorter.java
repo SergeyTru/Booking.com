@@ -38,10 +38,10 @@ class HotelsSorter {
       hotelInfo.otherClustersCount = countClusters(placesTooFar, maxWalkDistance);
       hotelInfos.add(hotelInfo);
     }
-    hotelInfos.sort(Comparator.<HotelInfo>comparingInt(x -> x.placesNearby).thenComparingDouble(x -> x.distance));
+    hotelInfos.sort(Comparator.<HotelInfo>comparingInt(x -> -x.placesNearby).thenComparingDouble(x -> x.distance));
     JSONArray result = new JSONArray();
     hotelInfos.stream().limit(10).forEach(x -> {
-      x.hotel.append("places_nearby", x.placesNearby).append("clusters", x.otherClustersCount);
+      x.hotel.put("places_nearby", x.placesNearby).put("clusters", x.otherClustersCount);
       result.put(x.hotel);
     });
     return result;
