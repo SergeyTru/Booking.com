@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.StringJoiner;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -20,6 +22,8 @@ public class getHotels extends HttpServlet {
   protected void processRequest(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     response.setContentType("text/json;charset=UTF-8");
+    response.addHeader("Access-Control-Allow-Origin", "*");
+    response.addHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
     try (PrintWriter out = response.getWriter()) {
       final String postData = getPostData(request);
       List<Coordinate> placesCoordinates;
@@ -31,7 +35,8 @@ public class getHotels extends HttpServlet {
       }
       else
         placesCoordinates = Arrays.asList(new Coordinate(4.8930, 52.36));
-      JSONArray hotels = HotelsSorter.sort(placesCoordinates, BookingHotels.forCity(-2140479, 7));
+      JSONArray hotels = HotelsSorter.sort(placesCoordinates, BookingHotels.hotelsForCity(-2140479, 50));
+      addPicturesToHotels(hotels);
       JSONObject result = new JSONObject();
       result.put("hotels", hotels);
       out.println(result.toString());
@@ -95,4 +100,16 @@ public class getHotels extends HttpServlet {
     return result;
   }
 
+  private void addPicturesToHotels(JSONArray hotels) throws IOException {
+    StringJoiner sj = new StringJoiner(",");
+    for (int i = 0; i < hotels.length(); ++i)
+      sj.add(hotels.getJSONObject(i).optString("hotel_id"));
+    HashMap<String, String> picts = BookingHotels.pictutesForHotels(sj.toString());
+    for (int i = 0; i < hotels.length(); ++i) {
+      JSONObject obj = hotels.getJSONObject(i);
+      String id = obj.optString("hotel_id");
+      if (picts.containsKey(id))
+        obj.put("picture", picts.get(id));
+    }
+  }
 }
