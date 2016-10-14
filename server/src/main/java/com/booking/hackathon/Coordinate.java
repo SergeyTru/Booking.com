@@ -22,4 +22,23 @@ public class Coordinate {
   {
     return till.stream().mapToDouble(x -> distanceTo(x)).average().orElse(0);
   }
+
+  @Override
+  public int hashCode() {
+    return (int) (Double.doubleToLongBits(this.lon) ^ Double.doubleToLongBits(this.lon));
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    final Coordinate other = (Coordinate) obj;
+    if (Double.doubleToLongBits(this.lon) != Double.doubleToLongBits(other.lon))
+      return false;
+    if (Double.doubleToLongBits(this.lat) != Double.doubleToLongBits(other.lat))
+      return false;
+    return true;
+  }
 }

@@ -27,15 +27,19 @@ public class getHotels extends HttpServlet {
     try (PrintWriter out = response.getWriter()) {
       final String postData = getPostData(request);
       List<Coordinate> placesCoordinates;
+      double maxWalkDistance = 2; //km
       if (!postData.trim().isEmpty())
       {
         JSONObject obj = new org.json.JSONObject(postData);
         JSONArray places = obj.getJSONArray("places");
+        JSONObject params = obj.optJSONObject("parameters");
+        if (params != null)
+          maxWalkDistance = params.optDouble("maxWalkDistance", maxWalkDistance);
         placesCoordinates = parsePlaces(places);
       }
       else
-        placesCoordinates = Arrays.asList(new Coordinate(4.8930, 52.36));
-      JSONArray hotels = HotelsSorter.sort(placesCoordinates, BookingHotels.hotelsForCity(-2140479, 50));
+        placesCoordinates = Arrays.asList(new Coordinate(4.8730, 52.32));
+      JSONArray hotels = HotelsSorter.sortByClusters(placesCoordinates, BookingHotels.hotelsForCity(-2140479, 0), maxWalkDistance);
       addPicturesToHotels(hotels);
       JSONObject result = new JSONObject();
       result.put("hotels", hotels);
@@ -95,7 +99,7 @@ public class getHotels extends HttpServlet {
     List<Coordinate> result = new ArrayList<>(places.length());
     for (int i = 0; i < places.length(); ++i) {
       JSONObject place = places.getJSONObject(i);
-      result.add(new Coordinate(place.getDouble("longtitude"), place.getDouble("latitude")));
+      result.add(new Coordinate(place.optDouble("longtitude"), place.optDouble("latitude")));
     }
     return result;
   }
