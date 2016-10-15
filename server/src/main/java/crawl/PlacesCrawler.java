@@ -2,11 +2,14 @@ package crawl;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -19,11 +22,34 @@ import org.htmlcleaner.TagNode;
 import org.htmlcleaner.conditional.ITagNodeCondition;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
 public class PlacesCrawler {
   public static void main(String[] args) throws IOException {
     PlacesCrawler crawler = new PlacesCrawler();
-    TagNode mainPage = crawler.crawlPage("http://www.booking.com/destinationfinder/cities/nl/amsterdam.html");
+    JSONArray json = crawler.crawlCity("nl/amsterdam.html");
+    try (Writer fileWriter = new FileWriter(new File("AmsterdamHotels.txt")))
+    {
+      fileWriter.write(json.toString(2));
+    }
+  }
+
+  public JSONArray crawlCityCached(final String city) throws IOException {
+    File cacheFile = new File("cache/" + String.valueOf(city.replaceAll("[?.\\\\/=&:]+", "_")) + ".txt");
+    if (!cacheFile.exists())
+    {
+      System.out.println("Create file: " + cacheFile.getCanonicalPath());
+      cacheFile.getParentFile().mkdirs();
+      JSONArray data = crawlCity(city);
+      Files.write(cacheFile.toPath(), data.toString(2).getBytes(StandardCharsets.UTF_8));
+      return data;
+    }
+    else
+      return new JSONArray(new JSONTokener(new FileInputStream(cacheFile)));
+  }
+
+  public JSONArray crawlCity(final String city) throws IOException {
+    TagNode mainPage = crawlPage("http://www.booking.com/destinationfinder/cities/" + city);
     List landmarks = mainPage.getElementList(new TagWithClass("div", "card-landmark"), true);
     JSONArray json = new org.json.JSONArray();
     for (Object mark: landmarks)
@@ -43,14 +69,11 @@ public class PlacesCrawler {
       Object searchLink = markNode.getElementList(new TagWithClass("a", "card-landmark__cta"), true).get(0);
       String link = ((TagNode)searchLink).getAttributeByName("href");
       oneMark.put("hotels_link", link);
-      crawler.crawlCoordinates("http://www.booking.com" + link, oneMark);
+      crawlCoordinates("http://www.booking.com" + link, oneMark);
 
       json.put(oneMark);
     }
-    try (Writer fileWriter = new FileWriter(new File("AmsterdamHotels.txt")))
-    {
-      fileWriter.write(json.toString(2));
-    }
+    return json;
   }
 
   private final HttpClient client = HttpClientBuilder.create().build();
