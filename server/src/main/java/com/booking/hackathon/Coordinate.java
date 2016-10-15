@@ -13,9 +13,10 @@ public class Coordinate {
 
   public double distanceTo(Coordinate other)
   {
+    double coef = Math.PI / 180;
     int EARTH_RADIUS = 6371;//in km
-    return Math.acos(Math.sin(lat) * Math.sin(other.lat)
-        + Math.cos(lat) * Math.cos(other.lat) * Math.cos(other.lon - lon)) * EARTH_RADIUS;
+    return Math.acos(Math.sin(coef*lat) * Math.sin(coef*other.lat)
+        + Math.cos(coef*lat) * Math.cos(coef*other.lat) * Math.cos(coef*other.lon - coef*lon)) * EARTH_RADIUS;
   }
 
   double avgDistanceTo(List<Coordinate> till)
