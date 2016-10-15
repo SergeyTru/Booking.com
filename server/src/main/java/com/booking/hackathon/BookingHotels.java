@@ -45,11 +45,24 @@ public class BookingHotels{
   }
 
   private static InputStream streamForUrl(final String requestURL) throws UnsupportedOperationException, IOException {
-    File cacheFile = new File("cache/" + String.valueOf(requestURL.replaceAll("[?./=&]", "_")) + ".txt");
-    if (!cacheFile.exists())
-    {
-      System.out.println("Create file: " + cacheFile.getCanonicalPath());
-      cacheFile.getParentFile().mkdirs();
+//    File cacheFile = new File("cache/" + String.valueOf(requestURL.replaceAll("[?.\\\\/=&:]+", "_")) + ".txt");
+//    if (!cacheFile.exists())
+//    {
+////      System.out.println("Create file: " + cacheFile.getCanonicalPath());
+//      cacheFile.getParentFile().mkdirs();
+//      final String url = "https://hacker240:6PJfyQFLn4@distribution-xml.booking.com/json" + requestURL;
+//      HttpResponse response = client.execute(new HttpGet(url));
+//      if (response.getStatusLine().getStatusCode() != 200)
+//      {
+//        System.out.println("Booking response code: " + response.getStatusLine().getStatusCode());
+//        return null;
+//      }
+//      try (InputStream strm = response.getEntity().getContent())
+//      {
+//        Files.copy(strm, cacheFile.toPath());
+//      }
+//    }
+//    return new FileInputStream(cacheFile);
       final String url = "https://hacker240:6PJfyQFLn4@distribution-xml.booking.com/json" + requestURL;
       HttpResponse response = client.execute(new HttpGet(url));
       if (response.getStatusLine().getStatusCode() != 200)
@@ -57,11 +70,6 @@ public class BookingHotels{
         System.out.println("Booking response code: " + response.getStatusLine().getStatusCode());
         return null;
       }
-      try (InputStream strm = response.getEntity().getContent())
-      {
-        Files.copy(strm, cacheFile.toPath());
-      }
-    }
-    return new FileInputStream(cacheFile);
+      return response.getEntity().getContent();
   }
 }
