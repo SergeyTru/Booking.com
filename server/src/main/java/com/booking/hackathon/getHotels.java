@@ -27,7 +27,7 @@ public class getHotels extends HttpServlet {
     try (PrintWriter out = response.getWriter()) {
       final String postData = getPostData(request);
       List<Coordinate> placesCoordinates;
-      double maxWalkDistance = 2; //km
+      double maxWalkDistance = 1; //km
       if (!postData.trim().isEmpty())
       {
         JSONObject obj = new org.json.JSONObject(postData);
@@ -38,9 +38,10 @@ public class getHotels extends HttpServlet {
         placesCoordinates = parsePlaces(places);
       }
       else
-        placesCoordinates = Arrays.asList(new Coordinate(4.8730, 52.32));
+        placesCoordinates = Arrays.asList(new Landmark("test", 4.8730, 52.32));
       JSONArray hotels = HotelsSorter.sortByClusters(placesCoordinates, BookingHotels.hotelsForCity(-2140479, 0), maxWalkDistance);
       addPicturesToHotels(hotels);
+      addLandmarksToHotels(hotels, placesCoordinates);
       JSONObject result = new JSONObject();
       result.put("hotels", hotels);
       out.println(result.toString());
@@ -99,7 +100,7 @@ public class getHotels extends HttpServlet {
     List<Coordinate> result = new ArrayList<>(places.length());
     for (int i = 0; i < places.length(); ++i) {
       JSONObject place = places.getJSONObject(i);
-      result.add(new Coordinate(place.optDouble("longtitude"), place.optDouble("latitude")));
+      result.add(new Landmark(place.optString("title"), place.optDouble("longtitude"), place.optDouble("latitude")));
     }
     return result;
   }
@@ -114,6 +115,33 @@ public class getHotels extends HttpServlet {
       String id = obj.optString("hotel_id");
       if (picts.containsKey(id))
         obj.put("picture", picts.get(id));
+    }
+  }
+
+  private void addLandmarksToHotels(JSONArray hotels, List<Coordinate> landmarks) {
+    for (int i = 0; i < hotels.length(); ++i) {
+      JSONObject hotel = hotels.getJSONObject(i);
+      JSONObject location = hotel.getJSONObject("location");
+      Coordinate coord = new Coordinate(location.getDouble("longitude"), location.getDouble("latitude"));
+      JSONArray distances = new JSONArray();
+      for (Coordinate landmark: landmarks)
+      {
+        JSONObject inner = new JSONObject();
+        inner.put("title", ((Landmark)landmark).title);
+        inner.put("distance", coord.distanceTo(landmark));
+        distances.put(inner);
+      }
+      hotel.put("distance_to_landmark", distances);
+    }
+  }
+
+  private class Landmark extends Coordinate
+  {
+    final String title;
+
+    public Landmark(String title, double longtitude, double latitude) {
+      super(longtitude, latitude);
+      this.title = title;
     }
   }
 }
