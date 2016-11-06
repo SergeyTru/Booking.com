@@ -1,4 +1,3 @@
-
 package com.booking.hackathon;
 
 import java.util.ArrayList;
@@ -58,32 +57,34 @@ class HotelsSorter {
   }
 
   private static int countClusters(List<Coordinate> places, double maxDistance) {
-//    if (places.isEmpty())
+    if (places.isEmpty())
       return 0;
-//    BitSet placesWeHave = new BitSet(places.size());
-//    placesWeHave.set(0, places.size() - 1);
-//    int clusters = 0;
-//    int idx, cnt;
-//    double sumLat, sumLon;
-//    while ((idx = placesWeHave.nextSetBit(0)) >= 0)
-//    {
-//      ++clusters;
-//      Coordinate coord = places.get(idx);
-//      sumLat = coord.lat;
-//      sumLon = coord.lon;
-//      cnt = 1;
-//      Coordinate clusterCenter = coord;
-//      placesWeHave.clear(idx);
-//      while ((idx = placesWeHave.nextSetBit(idx)) >= 0)
-//        if (places.get(idx).distanceTo(clusterCenter) < maxDistance)
-//        {
-//          placesWeHave.clear(idx);
-//          coord = places.get(idx);
-//          sumLat += coord.lat;
-//          sumLon += coord.lon;
-//        }
-//    }
-//    return clusters;
+    BitSet placesWeHave = new BitSet(places.size());
+    placesWeHave.set(0, places.size() - 1);
+    int clusters = 0;
+    int idx, cnt;
+    double sumLat, sumLon;
+    while ((idx = placesWeHave.nextSetBit(0)) >= 0)
+    {
+      ++clusters;
+      Coordinate coord = places.get(idx);
+      sumLat = coord.lat;
+      sumLon = coord.lon;
+      cnt = 1;
+      Coordinate clusterCenter = coord;
+      placesWeHave.clear(idx);
+      while ((idx = placesWeHave.nextSetBit(idx)) >= 0)
+        if (places.get(idx).distanceTo(clusterCenter) < maxDistance)
+        {
+          placesWeHave.clear(idx);
+          coord = places.get(idx);
+          sumLat += coord.lat;
+          sumLon += coord.lon;
+          cnt++;
+          clusterCenter = new Coordinate(sumLon/cnt, sumLat/cnt);
+        }
+    }
+    return clusters;
   }
 
   private static class HotelInfo implements Comparable<HotelInfo> {
